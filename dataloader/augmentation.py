@@ -63,6 +63,6 @@ def random_erasing(img, label, area_ratio=(0.02, 0.4), aspect_ratio=(0.3, 3)):
     rnd2 = np.random.randint(0, w - int(mask_size * aspect))
     sl1 = slice(rnd1, rnd1 + mask_size)
     sl2 = slice(rnd2, rnd2 + int(mask_size * aspect))
-    img[sl1, sl2] = np.random.randint(0, 255)
+    img[sl1, sl2] = np.random.randint(0, 256)
 
     return img, label

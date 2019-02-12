@@ -106,7 +106,7 @@ class Stanford2D3DS(chainer.dataset.DatasetMixin):
                 if np.random.rand() < self.augmentations_after_crop[process]:
                     img, label = eval(process)(img, label)
 
-        img = img.transpose(2, 0, 1)
+        img = img.transpose(2, 0, 1) / 255 - 0.5
         label = label.transpose(2, 0, 1)
 
         if self.task == 'semantic':
@@ -116,7 +116,9 @@ class Stanford2D3DS(chainer.dataset.DatasetMixin):
 
     def _preprocess(self, label, task):
         if task == 'depth':
-            label = np.float32(label) / 512 / 100
+            label[label == 65535] = -999
+            label = np.float32(label) / 512
+            label[label < 0] = -1
 
         elif task == 'semantic':
             label = (label * np.array((256**2, 256, 1)).reshape((1, 1, 3))).sum(axis=2)
