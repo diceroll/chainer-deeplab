@@ -135,17 +135,6 @@ class DeepLab(chainer.Chain):
 
         return h
 
-    def predict(self, input_list):
-        predictions = []
-        for x in input_list:
-            xp = cupy
-            y = self.forward(xp.array(x[np.newaxis, :, :, :]))
-            if self.task == 'semantic':
-                y = cupy.asnumpy(y.data.argmax(axis=1)[0])
-            predictions.append(y)
-
-        return predictions
-
 
 if __name__ == '__main__':
     model = DeepLab(1)
