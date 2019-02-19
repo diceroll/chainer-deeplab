@@ -6,7 +6,7 @@ from scipy.misc import imresize
 from scipy.ndimage import rotate
 
 
-def mirror(img, label):
+def mirror(img, label=None):
     img = img[:, ::-1, :]
     if label is not None:
         label = label[:, ::-1, :]
@@ -14,7 +14,7 @@ def mirror(img, label):
     return img, label
 
 
-def flip(img, label):
+def flip(img, label=None):
     img = img[::-1, :, :]
     if label is not None:
         label = label[::-1, :, :]
@@ -22,7 +22,7 @@ def flip(img, label):
     return img, label
 
 
-def gamma_correction(img, label):
+def gamma_correction(img, label=None):
     rnd1 = np.random.rand() + 1
     rnd2 = np.random.rand()
     if rnd2 < 0.5:
@@ -34,18 +34,10 @@ def gamma_correction(img, label):
     return np.float32(img), label
 
 
-def random_rotate(img, label, task='depth', angle=(-5, 5)):
+def random_rotate(img, label=None, cval=0, angle=(-5, 5)):
     '''
     angle: tuple or int or float
     '''
-    if task == 'depth':
-        cval = 0
-    elif task == 'semantic':
-        cval = -1
-    elif task == 'normal':
-        raise NotImplementedError
-    else:
-        raise ValueError
 
     if isinstance(angle, tuple):
         angle = np.random.rand() * (max(angle) - min(angle)) + min(angle)
@@ -58,7 +50,7 @@ def random_rotate(img, label, task='depth', angle=(-5, 5)):
     return img, label
 
 
-def resize(img, label, scale=(0.8, 1.2)):
+def resize(img, label=None, scale=(0.8, 1.2)):
     '''
     scale: tuple or int or float
     '''
@@ -93,7 +85,7 @@ def resize(img, label, scale=(0.8, 1.2)):
     return np.float32(img_out), np.int32(label_out)
 
 
-def cutout(img, label, mask_size=None):
+def cutout(img, label=None, mask_size=None):
     img_out = img.copy()
     h, w, _ = img.shape
 
@@ -109,7 +101,7 @@ def cutout(img, label, mask_size=None):
     return img_out, label
 
 
-def random_erasing(img, label, area_ratio=(0.02, 0.4), aspect_ratio=(0.3, 3)):
+def random_erasing(img, label=None, area_ratio=(0.02, 0.4), aspect_ratio=(0.3, 3)):
     img_out = img.copy()
     h, w, _ = img.shape
     area = h * w
@@ -133,15 +125,14 @@ if __name__ == '__main__':
     img_path = args[1]
     img = {}
     img['org'] = np.array(Image.open(img_path), np.float32)
-    label = None
 
-    img['mirror'], _ = mirror(img['org'], label)
-    img['flip'], _ = flip(img['org'], label)
-    img['gamma'], _ = gamma_correction(img['org'], label)
-    img['rotate'], _ = random_rotate(img['org'], label, angle=90)
-    img['resize'], _ = resize(img['org'], label)
-    img['cutout'], _ = cutout(img['org'], label)
-    img['random_erasing'], _ = random_erasing(img['org'], label)
+    img['mirror'], _ = mirror(img['org'])
+    img['flip'], _ = flip(img['org'])
+    img['gamma'], _ = gamma_correction(img['org'])
+    img['rotate'], _ = random_rotate(img['org'], angle=90)
+    img['resize'], _ = resize(img['org'])
+    img['cutout'], _ = cutout(img['org'])
+    img['random_erasing'], _ = random_erasing(img['org'])
 
     for k, v in img.items():
         print(k, v.shape)

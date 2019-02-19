@@ -53,7 +53,7 @@ class ModifiedEvaluator(extensions.Evaluator):
 
         observation = summary.compute_mean()
 
-        if self.label_names is not None:
+        if self.label_names is not None and len(pred_labels) > 0:
             pred_labels = np.array(pred_labels)
             gt_labels = np.array(gt_labels)
             result = eval_semantic_segmentation(pred_labels, gt_labels)

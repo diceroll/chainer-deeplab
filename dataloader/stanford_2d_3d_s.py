@@ -91,9 +91,15 @@ class Stanford2D3DS(chainer.dataset.DatasetMixin):
             for process in self.augmentations_before_crop:
                 if np.random.rand() < self.augmentations_before_crop[process]:
                     if process == 'random_rotate':
-                        img, label = eval(process)(img, label, self.task)
+                        if self.task == 'depth':
+                            cval = 0
+                        elif self.task == 'semantic':
+                            cval = -1
+                        elif self.task == 'normal':
+                            raise NotImplementedError
+                        img, label = eval(process)(img, label=label, cval=cval)
                     else:
-                        img, label = eval(process)(img, label)
+                        img, label = eval(process)(img, label=label)
 
         if self.crop is not None:
             rnd1 = np.random.randint(img.shape[0] - self.crop)
@@ -104,7 +110,7 @@ class Stanford2D3DS(chainer.dataset.DatasetMixin):
         if self.train:
             for process in self.augmentations_after_crop:
                 if np.random.rand() < self.augmentations_after_crop[process]:
-                    img, label = eval(process)(img, label)
+                    img, label = eval(process)(img, label=label)
 
         img = img.transpose(2, 0, 1) / 255 - 0.5
         label = label.transpose(2, 0, 1)
