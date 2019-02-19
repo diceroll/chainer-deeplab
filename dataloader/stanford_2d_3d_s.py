@@ -91,9 +91,7 @@ class Stanford2D3DS(chainer.dataset.DatasetMixin):
             for process in self.augmentations_before_crop:
                 if np.random.rand() < self.augmentations_before_crop[process]:
                     if process == 'random_rotate':
-                        if self.task == 'depth':
-                            cval = 0
-                        elif self.task == 'semantic':
+                        if self.task == 'depth' or self.task == 'semantic':
                             cval = -1
                         elif self.task == 'normal':
                             raise NotImplementedError
