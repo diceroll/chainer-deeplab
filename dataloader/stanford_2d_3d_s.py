@@ -154,7 +154,7 @@ class Stanford2D3DS(chainer.dataset.DatasetMixin):
 
 
 if __name__ == '__main__':
-    dir_path = '/mnt/HDD1/Dataset/'
+    dir_path = '../dataset/2D-3D-S/'
 
     dataset = Stanford2D3DS(dir_path, 'depth', area='1 2', train=True)
     dataset.set_augmentations(crop=513, augmentations={'mirror': 0.5, 'flip': 0.5})
