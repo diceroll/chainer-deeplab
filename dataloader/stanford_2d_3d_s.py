@@ -57,7 +57,8 @@ class Stanford2D3DS(chainer.dataset.DatasetMixin):
             self.data += list(p.glob('*.png'))
 
         if n_data is not None:
-            random.shuffle(self.data)
+            if self.train:
+                random.shuffle(self.data)
             self.data = self.data[:n_data]
 
         for img_path in self.data:

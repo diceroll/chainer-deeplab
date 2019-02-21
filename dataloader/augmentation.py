@@ -23,12 +23,11 @@ def flip(img, label=None):
 
 
 def gamma_correction(img, label=None):
-    rnd1 = np.random.rand() + 1
-    rnd2 = np.random.rand()
-    if rnd2 < 0.5:
-        rnd1 = 1 / rnd1
+    rnd = np.random.rand() + 1
+    if np.random.rand() < 0.5:
+        rnd = 1 / rnd
 
-    img = np.frompyfunc(lambda x, y: 255. * (x / 255.) ** y if x != 0 else x, 2, 1)(img, rnd1)
+    img = np.frompyfunc(lambda x, y: 255. * (x / 255.) ** y if x != 0 else x, 2, 1)(img, rnd)
     img = np.uint8(img)
 
     return np.float32(img), label
@@ -50,7 +49,7 @@ def random_rotate(img, label=None, cval=0, angle=(-5, 5)):
     return img, label
 
 
-def resize(img, label=None, scale=(0.8, 1.2)):
+def random_resize(img, label=None, scale=(0.8, 1.2)):
     '''
     scale: tuple or int or float
     '''
@@ -121,6 +120,9 @@ def random_erasing(img, label=None, area_ratio=(0.02, 0.4), aspect_ratio=(0.3, 3
 
 
 if __name__ == '__main__':
+    '''
+    Usage: python augmentation.py <Image Path>
+    '''
     args = sys.argv
     img_path = args[1]
     img = {}
@@ -130,7 +132,7 @@ if __name__ == '__main__':
     img['flip'], _ = flip(img['org'])
     img['gamma'], _ = gamma_correction(img['org'])
     img['rotate'], _ = random_rotate(img['org'], angle=90)
-    img['resize'], _ = resize(img['org'])
+    img['resize'], _ = random_resize(img['org'])
     img['cutout'], _ = cutout(img['org'])
     img['random_erasing'], _ = random_erasing(img['org'])
 
@@ -142,4 +144,4 @@ if __name__ == '__main__':
     print(imgs.shape)
 
     imgs = Image.fromarray(np.uint8(imgs))
-    imgs.save('{}_augmentations.png'.format(img_path.split('.')[0]))
+    imgs.save('{}_augmentation.png'.format(img_path.split('.')[0]))

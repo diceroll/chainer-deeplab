@@ -1,5 +1,4 @@
 import argparse
-import multiprocessing
 import random
 import shutil
 from datetime import datetime
@@ -7,7 +6,6 @@ from pathlib import Path
 
 import chainer
 import chainer.functions as F
-import chainer.links as L
 import cupy
 import numpy as np
 from chainer import iterators, optimizers, serializers
