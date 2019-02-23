@@ -67,7 +67,7 @@ class ASPP(chainer.Chain):
         h2 = self.aspp2(x)
         h3 = self.aspp3(x)
         h4 = self.aspp4(x)
-        h5 = F.average_pooling_2d(x, ksize=x.shape[-1])
+        h5 = F.average(x, axis=(2, 3), keepdims=True)
         h5 = F.relu(self.bn1(self.conv1(h5)))
         h5 = F.resize_images(h5, h4.shape[2:])
         h = F.concat((h1, h2, h3, h4, h5))
