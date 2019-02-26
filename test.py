@@ -46,8 +46,8 @@ def main():
     evaluator = ModifiedEvaluator(test_iter, model, label_names=label_list, device=args.gpu)
     observation = evaluator()
 
-    for i in ['main/loss', 'main/acc', 'main/mean_class_acc', 'main/miou']:
-        print(i, observation[i])
+    for k, v in observation.items():
+        print(k, v)
 
 
 if __name__ == '__main__':

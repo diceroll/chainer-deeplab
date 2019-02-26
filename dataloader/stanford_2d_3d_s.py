@@ -89,8 +89,8 @@ class Stanford2D3DS(chainer.dataset.DatasetMixin):
             label = label[:, :, np.newaxis]
 
         if self.train:
-            for process in self.augmentations_before_crop:
-                if np.random.rand() < self.augmentations_before_crop[process]:
+            for process, probability in self.augmentations_before_crop.items():
+                if np.random.rand() < probability:
                     if process == 'random_rotate':
                         if self.task == 'depth' or self.task == 'semantic':
                             cval = -1
@@ -107,11 +107,11 @@ class Stanford2D3DS(chainer.dataset.DatasetMixin):
             label = label[rnd1:rnd1 + self.crop, rnd2:rnd2 + self.crop, :]
 
         if self.train:
-            for process in self.augmentations_after_crop:
-                if np.random.rand() < self.augmentations_after_crop[process]:
+            for process, probability in self.augmentations_after_crop.items():
+                if np.random.rand() < probability:
                     img, label = eval(process)(img, label=label)
 
-        img = img.transpose(2, 0, 1) / 255 - 0.5
+        img = img.transpose(2, 0, 1) / 127.5 - 1.
         label = label.transpose(2, 0, 1)
 
         if self.task == 'semantic':
