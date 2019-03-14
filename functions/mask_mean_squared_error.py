@@ -9,6 +9,7 @@ class MaskMeanSquaredError(function_node.FunctionNode):
 
     def __init__(self, ignore_label=None):
         self.ignore_label = ignore_label
+        self.valid_size = None
 
     def check_type_forward(self, in_types):
         type_check._argname(in_types, ('x0', 'x1'))
@@ -24,7 +25,10 @@ class MaskMeanSquaredError(function_node.FunctionNode):
         if self.ignore_label is not None:
             self.t_valid = inputs[1] != self.ignore_label
             diff *= self.t_valid.ravel()
-        return numpy.array(diff.dot(diff) / diff.size, dtype=diff.dtype),
+            self.valid_size = self.t_valid.sum(dtype=diff.dtype)
+        else:
+            self.valid_size = diff.size
+        return numpy.array(diff.dot(diff) / self.valid_size, dtype=diff.dtype),
 
     def forward_gpu(self, inputs):
         self.retain_inputs((0, 1))
@@ -32,7 +36,11 @@ class MaskMeanSquaredError(function_node.FunctionNode):
         if self.ignore_label is not None:
             self.t_valid = inputs[1] != self.ignore_label
             diff *= self.t_valid.ravel()
-        return diff.dot(diff) / diff.dtype.type(diff.size),
+            self.valid_size = self.t_valid.sum(dtype=diff.dtype)
+        else:
+            self.valid_size = diff.dtype.type(diff.size)
+        print(self.valid_size, diff.size)
+        return diff.dot(diff) / self.valid_size,
 
     def backward(self, indexes, gy):
         x0, x1 = self.get_retained_inputs()
@@ -41,7 +49,7 @@ class MaskMeanSquaredError(function_node.FunctionNode):
         if self.ignore_label is not None:
             diff *= self.t_valid
         gy0 = chainer.functions.broadcast_to(gy[0], diff.shape)
-        gx0 = gy0 * diff * (2. / diff.size)
+        gx0 = gy0 * diff * (2. / self.valid_size)
         if 0 in indexes:
             ret.append(gx0)
         if 1 in indexes:

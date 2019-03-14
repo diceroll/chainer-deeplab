@@ -9,6 +9,7 @@ class MaskHuberLoss(function_node.FunctionNode):
     def __init__(self, delta=1.0, ignore_label=None):
         self.delta = delta
         self.ignore_label = ignore_label
+        self.valid_size = None
 
     def check_type_forward(self, in_types):
         type_check._argname(in_types, ('x', 't'))
@@ -26,6 +27,9 @@ class MaskHuberLoss(function_node.FunctionNode):
         if self.ignore_label is not None:
             self.t_valid = x1 != self.ignore_label
             diff *= self.t_valid.ravel()
+            self.valid_size = self.t_valid.sum(dtype=diff.dtype)
+        else:
+            self.valid_size = diff.dtype.type(diff.size)
         delta = diff.dtype.type(self.delta)
 
         xp.abs(diff, out=diff)
@@ -36,7 +40,7 @@ class MaskHuberLoss(function_node.FunctionNode):
         y -= diff
         y *= 0.5
 
-        return abs(y).sum() / y.dtype.type(y.size),
+        return abs(y).sum() / self.valid_size,
 
     def backward(self, indexes, grad_outputs):
         x0, x1 = self.get_retained_inputs()
@@ -47,7 +51,7 @@ class MaskHuberLoss(function_node.FunctionNode):
         # `functions.clip` only accepts float value.
         delta = float(self.delta)
         gx = chainer.functions.clip(diff, -delta, delta)
-        gx = chainer.functions.broadcast_to(gy, gx.shape) * gx / diff.size
+        gx = chainer.functions.broadcast_to(gy, gx.shape) * gx / self.valid_size
 
         return gx, -gx
 
