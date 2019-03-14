@@ -10,6 +10,7 @@ class MaskMeanAbsoluteError(function_node.FunctionNode):
 
     def __init__(self, ignore_label=None):
         self.ignore_label = ignore_label
+        self.valid_size = None
 
     def check_type_forward(self, in_types):
         type_check._argname(in_types, ('x0', 'x1'))
@@ -26,7 +27,10 @@ class MaskMeanAbsoluteError(function_node.FunctionNode):
         if self.ignore_label is not None:
             self.t_valid = x1 != self.ignore_label
             diff *= self.t_valid.ravel()
-        return numpy.array(abs(diff).sum() / diff.size, dtype=diff.dtype),
+            self.valid_size = self.t_valid.sum(dtype=diff.dtype)
+        else:
+            self.valid_size = diff.size
+        return numpy.array(abs(diff).sum() / self.valid_size, dtype=diff.dtype),
 
     def forward_gpu(self, inputs):
         x0, x1 = inputs
@@ -35,11 +39,14 @@ class MaskMeanAbsoluteError(function_node.FunctionNode):
         if self.ignore_label is not None:
             self.t_valid = x1 != self.ignore_label
             diff *= self.t_valid.ravel()
-        return abs(diff).sum() / diff.dtype.type(diff.size),
+            self.valid_size = self.t_valid.sum(dtype=diff.dtype)
+        else:
+            self.valid_size = diff.dtype.type(diff.size)
+        return abs(diff).sum() / self.valid_size,
 
     def backward(self, indexes, grad_outputs):
         gy, = grad_outputs
-        coeff = gy * gy.array.dtype.type(1. / self.diff.size)
+        coeff = gy / self.valid_size
         coeff = chainer.functions.broadcast_to(coeff, self.diff.shape)
         gx0 = coeff * backend.get_array_module(gy.array).sign(self.diff)
         if self.ignore_label is not None:
